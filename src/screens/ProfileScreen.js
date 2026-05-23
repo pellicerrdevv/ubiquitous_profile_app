@@ -21,7 +21,7 @@ export default function ProfileScreen({ navigation }) {
         setUserEmail(user.email);
         loadVisits(user.uid);
       } else {
-        navigation.navigate('Login');
+        //navigation.navigate('Login');
       }
     });
     return unsubscribe;
@@ -74,7 +74,7 @@ export default function ProfileScreen({ navigation }) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.navigate('Login');
+    //  navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
