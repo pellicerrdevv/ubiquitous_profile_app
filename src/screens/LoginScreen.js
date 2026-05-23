@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('Profile');
+     // navigation.navigate('Profile');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
