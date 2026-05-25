@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
 
 export default function MobileMap({ mapRegion, visits }) {
   const mapRef = useRef(null);
 
-  // Cada vez que cambie la región (porque registras un sitio nuevo), el mapa viajará suavemente
   useEffect(() => {
     if (mapRef.current && mapRegion) {
-      mapRef.current.animateToRegion(mapRegion, 1000); // 1000 milisegundos = 1 segundo de animación
+      mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [mapRegion]);
 
@@ -16,19 +16,116 @@ export default function MobileMap({ mapRegion, visits }) {
       ref={mapRef}
       style={{ width: '100%', height: '100%' }} 
       initialRegion={mapRegion}
-      showsUserLocation={true}       // Pinta el círculo azul del usuario en tiempo real
-      showsMyLocationButton={true}   // Añade el botón nativo para centrar la cámara sobre ti
-      loadingEnabled={true}          // Muestra un indicador de carga si el mapa tarda en bajar de internet
+      showsUserLocation={true}
+      showsMyLocationButton={true}
+      loadingEnabled={true}
     >
-      {visits.map((visit, index) => (
-        <Marker
-          key={index}
-          coordinate={{ latitude: visit.lat, longitude: visit.lng }}
-          title={`📌 Visita #${index + 1}`}
-          description={new Date(visit.timestamp).toLocaleString()} // Muestra fecha y hora completa al pulsar
-          pinColor={index === visits.length - 1 ? '#007AFF' : '#ff3b30'} // La última visita será azul, las viejas rojas
-        />
-      ))}
+      {visits.map((visit, index) => {
+        const isLast = index === visits.length - 1;
+        const visitDate = new Date(visit.timestamp);
+
+        return (
+          <Marker
+            key={index}
+            coordinate={{ latitude: visit.lat, longitude: visit.lng }}
+            pinColor={isLast ? '#007AFF' : '#ff3b30'}
+          >
+            {/* BURBUJA DE INFORMACIÓN TOTALMENTE PERSONALIZADA */}
+            <Callout tooltip={true} style={styles.calloutContainer}>
+              <View style={styles.bubble}>
+                <Text style={styles.title}>
+                  {isLast ? '📍 Última Visita' : `📌 Visita #${index + 1}`}
+                </Text>
+                
+                <View style={styles.divider} />
+                
+                <Text style={styles.dateTime}>
+                  📅 {visitDate.toLocaleDateString()}
+                </Text>
+                <Text style={styles.dateTime}>
+                  ⏰ {visitDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+
+                <Text style={styles.coords}>
+                  {visit.lat.toFixed(4)}, {visit.lng.toFixed(4)}
+                </Text>
+              </View>
+              {/* Pequeña flecha inferior que conecta la burbuja con la chincheta */}
+              <View style={styles.arrowBorder} />
+              <View style={styles.arrow} />
+            </Callout>
+          </Marker>
+        );
+      })}
     </MapView>
   );
 }
+
+const styles = StyleSheet.create({
+  calloutContainer: {
+    width: 160,
+    alignItems: 'center',
+  },
+  bubble: {
+    flexDirection: 'column',
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 12,
+    width: '100%',
+    // Sombras premium para iOS y Android
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  title: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1c1c1e',
+    marginBottom: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#efeff4',
+    marginBottom: 6,
+    width: '100%',
+  },
+  dateTime: {
+    fontSize: 11,
+    color: '#3a3a3c',
+    marginBottom: 2,
+    fontWeight: '500',
+  },
+  coords: {
+    fontSize: 10,
+    color: '#8e8e93',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginTop: 4,
+    textAlign: 'right',
+  },
+  // Diseño de la flecha triangular inferior
+  arrow: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderTopColor: '#fff',
+    borderWidth: 8,
+    alignSelf: 'center',
+    marginTop: -0.5,
+  },
+  arrowBorder: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderTopColor: 'transparent',
+    borderWidth: 8,
+    alignSelf: 'center',
+    marginTop: -0.5,
+  },
+});
