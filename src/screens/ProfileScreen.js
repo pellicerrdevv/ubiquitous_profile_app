@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   Alert, ScrollView, ActivityIndicator, Animated, Pressable
@@ -15,10 +15,10 @@ export default function ProfileScreen({ navigation }) {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
   
-  // Animaciones
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
-  const scaleAnim = new Animated.Value(1);
+  // Animaciones - usar useRef para que persistan entre renders
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Animación de entrada
@@ -65,21 +65,8 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleCapturePress = () => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-    captureLocation();
-  };    setLoadingLocation(true);
+  const captureLocation = async () => {
+    setLoadingLocation(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -103,6 +90,22 @@ export default function ProfileScreen({ navigation }) {
     } finally {
       setLoadingLocation(false);
     }
+  };
+
+  const handleCapturePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    captureLocation();
   };
 
   const handleLogout = async () => {
