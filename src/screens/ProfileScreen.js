@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, ScrollView, ActivityIndicator
+  Alert, ScrollView, ActivityIndicator, Animated, Pressable
 } from 'react-native';
 import * as Location from 'expo-location';
 import { signOut } from 'firebase/auth';
@@ -14,6 +14,27 @@ export default function ProfileScreen({ navigation }) {
   const [lastLocation, setLastLocation] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  
+  // Animaciones
+  const fadeAnim = new Animated.Value(0);
+  const slideAnim = new Animated.Value(50);
+  const scaleAnim = new Animated.Value(1);
+
+  useEffect(() => {
+    // Animación de entrada
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -44,8 +65,21 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const captureLocation = async () => {
-    setLoadingLocation(true);
+  const handleCapturePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    captureLocation();
+  };    setLoadingLocation(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -86,23 +120,41 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.profileBox}>
+      <Animated.View 
+        style={[
+          styles.profileBox,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <Text style={styles.label}>Email</Text>
         <Text style={styles.value}>{userEmail}</Text>
-      </View>
+      </Animated.View>
 
-      <TouchableOpacity
-        style={[styles.captureButton, loadingLocation && styles.buttonDisabled]}
-        onPress={captureLocation}
-        disabled={loadingLocation}
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <TouchableOpacity
+          style={[styles.captureButton, loadingLocation && styles.buttonDisabled]}
+          onPress={handleCapturePress}
+          disabled={loadingLocation}
+        >
+          {loadingLocation
+            ? <ActivityIndicator color="white" />
+            : <Text style={styles.captureButtonText}>📍 Registrar ubicación actual</Text>
+          }
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View 
+        style={[
+          styles.section,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
       >
-        {loadingLocation
-          ? <ActivityIndicator color="white" />
-          : <Text style={styles.captureButtonText}>📍 Registrar ubicación actual</Text>
-        }
-      </TouchableOpacity>
-
-      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Estadísticas</Text>
         {loadingStats ? (
           <ActivityIndicator color="#007AFF" />
@@ -126,7 +178,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </>
         )}
-      </View>
+      </Animated.View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
