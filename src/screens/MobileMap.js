@@ -34,7 +34,7 @@ export default function MobileMap({ mapRegion, visits }) {
             <Callout tooltip={true} style={styles.calloutContainer}>
               <View style={styles.bubble}>
                 <Text style={styles.title}>
-                  {isLast ? '📍 Última Visita' : `📌 Visita #${index + 1}`}
+                  {isLast ? '📍 Last visit' : `📌 Visit #${index + 1}`}
                 </Text>
                 
                 <View style={styles.divider} />

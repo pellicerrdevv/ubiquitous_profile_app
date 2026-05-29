@@ -53,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
         setLastLocation(sortedData[sortedData.length - 1]);
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar las visitas: ' + error.message);
+      Alert.alert('Error', 'Could not load visits: ' + error.message);
     } finally {
       setLoadingStats(false);
     }
@@ -64,7 +64,7 @@ export default function ProfileScreen({ navigation }) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu ubicación para registrar el lugar.');
+        Alert.alert('Permission denied', 'We need acces to your location to register locations.');
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
@@ -78,7 +78,7 @@ export default function ProfileScreen({ navigation }) {
       const updated = [...visits, newVisit];
       setVisits(updated);
       setLastLocation(newVisit);
-      Alert.alert('¡Lugar registrado!', `Lat: ${newVisit.lat.toFixed(5)}\nLng: ${newVisit.lng.toFixed(5)}`);
+      Alert.alert('¡Location registered!', `Lat: ${newVisit.lat.toFixed(5)}\nLng: ${newVisit.lng.toFixed(5)}`);
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
@@ -130,7 +130,7 @@ export default function ProfileScreen({ navigation }) {
       <Animated.View style={[styles.mapContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         {Platform.OS === 'web' ? (
           <View style={styles.webMapFallback}>
-            <Text style={styles.webMapText}>🗺️ El mapa interactivo solo está disponible en el móvil.</Text>
+            <Text style={styles.webMapText}>🗺️ Interactive map is only available on phone.</Text>
           </View>
         ) : (
           MobileMap && <MobileMap mapRegion={mapRegion} visits={visits} />
@@ -146,30 +146,30 @@ export default function ProfileScreen({ navigation }) {
         >
           {loadingLocation
             ? <ActivityIndicator color="white" />
-            : <Text style={styles.captureButtonText}>📍 Registrar ubicación actual</Text>
+            : <Text style={styles.captureButtonText}>📍 Register current location</Text>
           }
         </TouchableOpacity>
       </Animated.View>
 
       {/* Estadísticas animadas */}
       <Animated.View style={[styles.section, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <Text style={styles.sectionTitle}>Estadísticas</Text>
+        <Text style={styles.sectionTitle}>Statistics</Text>
         {loadingStats ? (
           <ActivityIndicator color="#007AFF" />
         ) : (
           <>
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Total visitas</Text>
+              <Text style={styles.statLabel}>Total visits</Text>
               <Text style={styles.statValue}>{visits.length}</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Lugares únicos</Text>
+              <Text style={styles.statLabel}>Unique locations</Text>
               <Text style={styles.statValue}>{uniquePlaces}</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Última ubicación</Text>
+              <Text style={styles.statLabel}>Last location</Text>
               <Text style={styles.statValue}>
-                {lastLocation ? `${lastLocation.lat.toFixed(4)}, ${lastLocation.lng.toFixed(4)}` : 'No capturada'}
+                {lastLocation ? `${lastLocation.lat.toFixed(4)}, ${lastLocation.lng.toFixed(4)}` : 'Not captured'}
               </Text>
             </View>
           </>
@@ -178,14 +178,14 @@ export default function ProfileScreen({ navigation }) {
 
       {/* HISTORIAL DE VISITAS DETALLADO */}
       <Animated.View style={[styles.section, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <Text style={styles.sectionTitle}>Historial de Rutas</Text>
+        <Text style={styles.sectionTitle}>Trip history</Text>
         {visits.length === 0 && !loadingStats ? (
-          <Text style={styles.noVisitsText}>Aún no has registrado ningún lugar.</Text>
+          <Text style={styles.noVisitsText}>There are no registered places yet.</Text>
         ) : (
           [...visits].reverse().map((visit, index) => (
             <View key={index} style={styles.historyCard}>
               <View style={styles.historyHeader}>
-                <Text style={styles.historyBadge}>📌 Visita #{visits.length - index}</Text>
+                <Text style={styles.historyBadge}>📌 Visit #{visits.length - index}</Text>
                 <Text style={styles.historyDate}>
                   {new Date(visit.timestamp).toLocaleDateString()} {new Date(visit.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </Text>
@@ -199,7 +199,7 @@ export default function ProfileScreen({ navigation }) {
       </Animated.View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+        <Text style={styles.logoutButtonText}>Log out</Text>
       </TouchableOpacity>
     </ScrollView>
   );
