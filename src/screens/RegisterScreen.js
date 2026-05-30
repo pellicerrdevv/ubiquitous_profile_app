@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { useSettings } from '../context/SettingsContext';
 
 export default function RegisterScreen({ navigation }) {
+  const { theme, t } = useSettings();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Estados independientes para cada tipo de error
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [firebaseError, setFirebaseError] = useState('');
 
-  // Validación  para creación de cuentas
   const validateForm = () => {
     let isValid = true;
     setEmailError('');
@@ -23,31 +24,28 @@ export default function RegisterScreen({ navigation }) {
     setConfirmPasswordError('');
     setFirebaseError('');
 
-    // Validar Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
-      setEmailError('Email is mandatory.');
+      setEmailError(t.emailRequired);
       isValid = false;
     } else if (!emailRegex.test(email.trim())) {
-      setEmailError('Introduce a valid email format.');
+      setEmailError(t.emailFormat);
       isValid = false;
     }
 
-    
     if (!password) {
-      setPasswordError('Password is mandatory.');
+      setPasswordError(t.passwordRequired);
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError('Password should have at least 6 characters.');
+      setPasswordError(t.passLength);
       isValid = false;
     }
 
-    // Validar que coincidan
     if (!confirmPassword) {
-      setConfirmPasswordError('Confirm the password.');
+      setConfirmPasswordError(t.confirmRequired);
       isValid = false;
     } else if (password !== confirmPassword) {
-      setConfirmPasswordError('The passwords do not match.');
+      setConfirmPasswordError(t.passMatch);
       isValid = false;
     }
 
@@ -60,17 +58,16 @@ export default function RegisterScreen({ navigation }) {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
-      Alert.alert('¡Éxito!', 'Cuenta creada correctamente.'); // Alerta limpia antes de ir al perfil
-      //navigation.navigate('ProfileScreen');
+      Alert.alert('Success', 'Account created successfully.');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
-        setFirebaseError('This email is already in use.');
+        setFirebaseError(t.emailInUse);
       } else if (error.code === 'auth/invalid-email') {
-        setFirebaseError('The email is invalid.');
+        setFirebaseError(t.emailInvalid);
       } else if (error.code === 'auth/weak-password') {
-        setFirebaseError('Password too weak.');
+        setFirebaseError(t.passWeak);
       } else {
-        setFirebaseError('Registration error: ' + error.message);
+        setFirebaseError(t.regError + error.message);
       }
     } finally {
       setLoading(false);
@@ -78,13 +75,12 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.text }]}>{t.register}</Text>
 
-      {/* INPUT EMAIL */}
       <TextInput
-        style={[styles.input, emailError ? styles.inputError : null]}
-        placeholder="Email"
+        style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.inputText }, emailError ? styles.inputError : null]}
+        placeholder={t.email}
         placeholderTextColor="#aaa"
         value={email}
         onChangeText={(text) => {
@@ -97,10 +93,9 @@ export default function RegisterScreen({ navigation }) {
       />
       {emailError ? <Text style={styles.errorText}>⚠️ {emailError}</Text> : null}
 
-      {/* INPUT PASSWORD */}
       <TextInput
-        style={[styles.input, passwordError ? styles.inputError : null]}
-        placeholder="Password"
+        style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.inputText }, passwordError ? styles.inputError : null]}
+        placeholder={t.password}
         placeholderTextColor="#aaa"
         value={password}
         onChangeText={(text) => {
@@ -113,10 +108,9 @@ export default function RegisterScreen({ navigation }) {
       />
       {passwordError ? <Text style={styles.errorText}>⚠️ {passwordError}</Text> : null}
 
-      {/* INPUT CONFIRM PASSWORD */}
       <TextInput
-        style={[styles.input, confirmPasswordError ? styles.inputError : null]}
-        placeholder="Confirm Password"
+        style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.inputText }, confirmPasswordError ? styles.inputError : null]}
+        placeholder={t.confirmPassword}
         placeholderTextColor="#aaa"
         value={confirmPassword}
         onChangeText={(text) => {
@@ -129,42 +123,39 @@ export default function RegisterScreen({ navigation }) {
       />
       {confirmPasswordError ? <Text style={styles.errorText}>⚠️ {confirmPasswordError}</Text> : null}
 
-      {/* Caja de error general de Firebase */}
       {firebaseError ? (
-        <View style={styles.firebaseErrorBox}>
-          <Text style={styles.firebaseErrorText}>{firebaseError}</Text>
+        <View style={[styles.firebaseErrorBox, { backgroundColor: theme.errorBg, borderLeftColor: theme.error }]}>
+          <Text style={[styles.firebaseErrorText, { color: theme.error }]}>{firebaseError}</Text>
         </View>
       ) : null}
 
       <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
+        style={[styles.button, { backgroundColor: theme.primary }, loading && styles.buttonDisabled]}
         onPress={handleRegister}
         disabled={loading}
       >
         <Text style={styles.buttonText}>
-          {loading ? 'Registrando...' : 'Register'}
+          {loading ? t.registering : t.register}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Already have an account? Login</Text>
+        <Text style={[styles.link, { color: theme.primary }]}>{t.alreadyAccount}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#f5f5f5' },
+  container: { flex: 1, padding: 20, justifyContent: 'center' },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 12, marginBottom: 12, borderRadius: 8, backgroundColor: 'white', fontSize: 15, color: '#333' },
-  button: { backgroundColor: '#007AFF', padding: 12, borderRadius: 8, marginTop: 10, alignItems: 'center' },
+  input: { borderWidth: 1, padding: 12, marginBottom: 12, borderRadius: 8, fontSize: 15 },
+  button: { padding: 12, borderRadius: 8, marginTop: 10, alignItems: 'center' },
   buttonDisabled: { backgroundColor: '#ccc' },
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  link: { color: '#007AFF', textAlign: 'center', marginTop: 15 },
-
-  // Estilos de Alertas Visuales
+  link: { textAlign: 'center', marginTop: 15 },
   inputError: { borderColor: '#ff3b30', backgroundColor: '#fff9f9' },
   errorText: { color: '#ff3b30', fontSize: 12, marginTop: -8, marginBottom: 12, fontWeight: '500', paddingLeft: 4 },
-  firebaseErrorBox: { backgroundColor: '#ffe5e5', padding: 12, borderRadius: 8, marginTop: 5, marginBottom: 10, borderLeftWidth: 4, borderLeftColor: '#ff3b30' },
-  firebaseErrorText: { color: '#d61c1c', fontSize: 13, fontWeight: '500' },
+  firebaseErrorBox: { padding: 12, borderRadius: 8, marginTop: 5, marginBottom: 10, borderLeftWidth: 4 },
+  firebaseErrorText: { fontSize: 13, fontWeight: '500' },
 });

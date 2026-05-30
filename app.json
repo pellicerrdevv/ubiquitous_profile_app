@@ -3,7 +3,7 @@
     "name": "ubiquitous_profile_app",
     "slug": "ubiquitous_profile_app",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "ubiquitousprofileapp",
     "userInterfaceStyle": "automatic",

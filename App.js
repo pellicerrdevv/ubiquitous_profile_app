@@ -6,59 +6,56 @@ import { auth } from './src/firebaseConfig';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function NavigationWrapper() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { theme, t } = useSettings();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
-
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return null;
-  }
+  if (loading) return null;
 
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
           headerShown: true,
-          headerStyle: {
-            backgroundColor: '#007AFF',
-          },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
+          headerTitleStyle: { fontWeight: 'bold' },
         }}
       >
         {user ? (
           <Stack.Screen
             name="Profile"
             component={ProfileScreen}
-            options={{
-              title: 'My Visited Places'
-            }}
+            options={{ title: t.title }}
           />
         ) : (
-          <Stack.Group
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
+          <Stack.Group screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <SettingsProvider>
+      <NavigationWrapper />
+    </SettingsProvider>
   );
 }
